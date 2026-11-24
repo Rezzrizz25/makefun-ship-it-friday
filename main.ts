@@ -3,7 +3,7 @@
 // Entry: "feat: force-pushed to main at 4:59pm on a Friday — rollback plan is just vibes and a prayer"
 // Exact character count: 91
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ENTRY =
@@ -23,4 +23,11 @@ if (ENTRY.includes("\n") || ENTRY.includes("\r")) {
 const outDir = process.env.MAKEFUN_OUTPUT_DIR || "/output";
 mkdirSync(outDir, { recursive: true });
 writeFileSync(join(outDir, "entry.txt"), ENTRY, "utf8");
+
+// Verify the write round-tripped byte-for-byte: the grader reads the file
+// back, so a silent encoding change here would fail the gate unnoticed.
+const written = readFileSync(join(outDir, "entry.txt"), "utf8");
+if (written !== ENTRY) {
+  throw new Error("entry.txt round-trip mismatch: written content differs from entry");
+}
 console.log(`wrote ${ENTRY.length}-character entry to ${join(outDir, "entry.txt")}`);
